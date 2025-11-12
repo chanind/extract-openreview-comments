@@ -1,6 +1,5 @@
 """OpenReview API client for fetching forum comments."""
 
-
 import openreview
 from openreview.api import Note
 
