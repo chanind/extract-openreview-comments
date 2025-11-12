@@ -17,32 +17,8 @@ A Python command-line tool to extract OpenReview comments for a paper into markd
 
 ## Installation
 
-### From PyPI (recommended)
-
 ```bash
 pip install extract-openreview-comments
-```
-
-### From Source
-
-```bash
-git clone https://github.com/chanind/extract-openreview-comments.git
-cd extract-openreview-comments
-pip install -e .
-```
-
-### For Development
-
-```bash
-git clone https://github.com/chanind/extract-openreview-comments.git
-cd extract-openreview-comments
-pip install -e ".[dev]"
-```
-
-Or with [uv](https://github.com/astral-sh/uv) (faster):
-
-```bash
-uv sync
 ```
 
 ## Usage
@@ -124,6 +100,7 @@ Example output:
 ---
 
 ## Comment by Reviewer_ABC
+
 **Date:** 2024-01-15 10:30:00
 
 **Review:**
@@ -137,6 +114,7 @@ This paper presents an interesting approach to...
 ### Replies:
 
 ## Comment by Authors
+
 **Date:** 2024-01-20 14:00:00
 
 **Response:**
@@ -185,6 +163,7 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 - Built using the [OpenReview Python API](https://github.com/openreview/openreview-py)
 - CLI powered by [Click](https://click.palletsprojects.com/)
+- Built using [Claude Code](https://claude.ai/code)
 
 ## Links
 
