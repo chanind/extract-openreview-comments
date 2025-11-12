@@ -4,7 +4,7 @@
 [![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-A Python command-line tool to extract OpenReview comments for a paper into markdown format for easy copy/pasting during rebuttals.
+A Python command-line tool to extract OpenReview comments for a paper into markdown format for easy copy/pasting when writing rebuttals.
 
 ## Features
 
