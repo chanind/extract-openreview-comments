@@ -159,7 +159,9 @@ class TestMarkdownFormatter:
         """Test that HTML entities are unescaped."""
         # Test with common HTML entities
         assert MarkdownFormatter._extract_value("It&#39;s working") == "It's working"
-        assert MarkdownFormatter._extract_value("Say &quot;hello&quot;") == 'Say "hello"'
+        assert (
+            MarkdownFormatter._extract_value("Say &quot;hello&quot;") == 'Say "hello"'
+        )
         assert (
             MarkdownFormatter._extract_value("Less &lt; more &gt;") == "Less < more >"
         )
