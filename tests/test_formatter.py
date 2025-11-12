@@ -154,3 +154,40 @@ class TestMarkdownFormatter:
 
         assert "Author1, Author2, Author3" in result
         assert "Joint response" in result
+
+    def test_extract_value_html_entities(self):
+        """Test that HTML entities are unescaped."""
+        # Test with common HTML entities
+        assert MarkdownFormatter._extract_value("It&#39;s working") == "It's working"
+        assert MarkdownFormatter._extract_value("Say &quot;hello&quot;") == 'Say "hello"'
+        assert (
+            MarkdownFormatter._extract_value("Less &lt; more &gt;") == "Less < more >"
+        )
+        assert MarkdownFormatter._extract_value("A &amp; B") == "A & B"
+
+        # Test with dict format
+        assert (
+            MarkdownFormatter._extract_value({"value": "It&#39;s working"})
+            == "It's working"
+        )
+
+    def test_format_note_with_html_entities(self):
+        """Test formatting a note with HTML entities in content."""
+        note = create_mock_note(
+            content={
+                "comment": {
+                    "value": "The model&#39;s performance is &quot;excellent&quot; &amp; promising."
+                }
+            }
+        )
+
+        result = MarkdownFormatter.format_note(note, include_replies=False)
+
+        # Check that HTML entities are unescaped in output
+        assert "model's performance" in result
+        assert '"excellent"' in result
+        assert "& promising" in result
+        # Make sure raw entities are not in output
+        assert "&#39;" not in result
+        assert "&quot;" not in result
+        assert "&amp;" not in result

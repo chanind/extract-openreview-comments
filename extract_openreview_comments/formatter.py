@@ -1,5 +1,6 @@
 """Markdown formatting for OpenReview comments."""
 
+import html
 from datetime import datetime
 from typing import Any
 
@@ -100,15 +101,21 @@ class MarkdownFormatter:
             field: The field to extract value from
 
         Returns:
-            String value or None
+            String value or None (with HTML entities unescaped)
         """
+        value = None
         if isinstance(field, dict):
-            return field.get("value")
+            value = field.get("value")
         elif isinstance(field, str):
-            return field
+            value = field
         elif isinstance(field, (int, float)):
-            return str(field)
-        return None
+            value = str(field)
+
+        # Unescape HTML entities (e.g., &#39; -> ', &quot; -> ")
+        if value and isinstance(value, str):
+            value = html.unescape(value)
+
+        return value
 
     @staticmethod
     def format_all_notes(
