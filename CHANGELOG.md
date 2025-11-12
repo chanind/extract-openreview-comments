@@ -1,5 +1,17 @@
 # CHANGELOG
 
+## v0.1.1 (2025-11-12)
+
+### Chore
+
+* chore: formatting ([`a013f6b`](https://github.com/chanind/extract-openreview-comments/commit/a013f6bd7d2c9bcf943fb43246512f9b8ed77acc))
+
+* chore: update README ([`1ff59b5`](https://github.com/chanind/extract-openreview-comments/commit/1ff59b5bef2d90b8ca042d41b826be3395cc27cb))
+
+### Fix
+
+* fix: properly decode html encoded entities ([`7101e94`](https://github.com/chanind/extract-openreview-comments/commit/7101e94e18fa09d1e598edb8fc74d473db62b4c5))
+
 ## v0.1.0 (2025-11-12)
 
 ### Feature
