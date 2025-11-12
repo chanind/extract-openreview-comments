@@ -1,0 +1,59 @@
+[project]
+name = "extract-openreview-comments"
+version = "0.1.0"
+description = "A python script to extract the open-review comments for a paper into a markdown file for easy copy/pasting during rebuttals"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = ["openreview-py>=1.0.0", "click>=8.0.0"]
+license = { text = "MIT" }
+authors = [{ name = "David Chanin", email = "chanindav@gmail.com" }]
+keywords = ["openreview", "comments", "markdown", "rebuttal"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+]
+
+[project.urls]
+Homepage = "https://github.com/chanind/extract-openreview-comments"
+Repository = "https://github.com/chanind/extract-openreview-comments"
+Issues = "https://github.com/chanind/extract-openreview-comments/issues"
+
+[project.scripts]
+extract-openreview-comments = "extract_openreview_comments.cli:main"
+
+[dependency-groups]
+dev = ["pyright>=1.1.407", "pytest>=9.0.1", "ruff>=0.14.4"]
+
+[tool.ruff.lint]
+select = [
+    "E",  # pycodestyle errors
+    "W",  # pycodestyle warnings
+    "F",  # pyflakes
+    "I",  # isort
+    "B",  # flake8-bugbear
+    "C4", # flake8-comprehensions
+    "UP", # pyupgrade
+]
+ignore = ["E501", "E731", "E722", "F722", "F821"]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+
+[tool.ruff.lint.flake8-tidy-imports.banned-api]
+"typing.Union".msg = "Use `|` instead"
+"typing.Optional".msg = "Use `| None` instead"
+"typing.Dict".msg = "Use `dict` instead"
+"typing.Tuple".msg = "Use `tuple` instead"
+"typing.List".msg = "Use `list` instead"
+
+[tool.uv]
+package = true
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
