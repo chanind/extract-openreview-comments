@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## v0.1.2 (2025-11-30)
+
+### Fix
+
+* fix: include nested replies in markdown ([`fb16fd5`](https://github.com/chanind/extract-openreview-comments/commit/fb16fd54f21647ec1b217a9d57599ba562f92597))
+
 ## v0.1.1 (2025-11-12)
 
 ### Chore

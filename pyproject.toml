@@ -1,6 +1,6 @@
 [project]
 name = "extract-openreview-comments"
-version = "0.1.1"
+version = "0.1.2"
 description = "A python script to extract the open-review comments for a paper into a markdown file for easy copy/pasting during rebuttals"
 readme = "README.md"
 requires-python = ">=3.11"
