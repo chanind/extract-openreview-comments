@@ -193,3 +193,165 @@ class TestMarkdownFormatter:
         assert "&#39;" not in result
         assert "&quot;" not in result
         assert "&amp;" not in result
+
+    def test_get_attr_with_note_object(self):
+        """Test _get_attr works with Note-like objects (Mock)."""
+        note = create_mock_note(
+            signatures=["Test Author"],
+            cdate=1609459200000,
+        )
+
+        # Test that _get_attr correctly retrieves attributes from Note-like objects
+        assert MarkdownFormatter._get_attr(note, "signatures") == ["Test Author"]
+        assert MarkdownFormatter._get_attr(note, "cdate") == 1609459200000
+
+    def test_get_attr_with_dict(self):
+        """Test _get_attr works with dict (as returned by directReplies API)."""
+        note_dict = {
+            "id": "dict_note_id",
+            "signatures": ["Dict Author"],
+            "cdate": 1609459200000,
+            "content": {"comment": {"value": "Dict comment"}},
+        }
+
+        assert MarkdownFormatter._get_attr(note_dict, "signatures") == ["Dict Author"]
+        assert MarkdownFormatter._get_attr(note_dict, "cdate") == 1609459200000
+        assert MarkdownFormatter._get_attr(note_dict, "nonexistent") is None
+        assert (
+            MarkdownFormatter._get_attr(note_dict, "nonexistent", "default")
+            == "default"
+        )
+
+    def test_format_note_with_dict_input(self):
+        """Test format_note works with dict input (as returned by directReplies API)."""
+        note_dict = {
+            "id": "dict_note_id",
+            "signatures": ["Dict Author"],
+            "cdate": 1609459200000,
+            "content": {"comment": {"value": "This is a dict-based comment"}},
+            "details": {},
+        }
+
+        result = MarkdownFormatter.format_note(note_dict, include_replies=False)
+
+        assert "## Comment by Dict Author" in result
+        assert "2021-01-01" in result
+        assert "This is a dict-based comment" in result
+
+    def test_format_note_with_dict_replies(self):
+        """Test formatting a note where replies are dicts (real API behavior)."""
+        # This tests the actual bug case: directReplies returns dicts, not Note objects
+        dict_reply = {
+            "id": "reply_1",
+            "signatures": ["Reply Author"],
+            "cdate": 1609545600000,
+            "content": {"comment": {"value": "Thank you for the feedback"}},
+            "details": {},
+        }
+
+        parent_note = create_mock_note(content={"review": {"value": "Good paper"}})
+        parent_note.details = {"directReplies": [dict_reply]}
+
+        result = MarkdownFormatter.format_note(parent_note, include_replies=True)
+
+        assert "Good paper" in result
+        assert "Replies:" in result
+        assert "Reply Author" in result
+        assert "Thank you for the feedback" in result
+
+    def test_format_note_to_file_with_dict(self):
+        """Test format_note_to_file works with dict input."""
+        note_dict = {
+            "id": "dict_note_id",
+            "signatures": ["Dict Reviewer"],
+            "cdate": 1609459200000,
+            "content": {"comment": {"value": "Dict comment for file"}},
+            "details": {},
+        }
+
+        markdown, filename = MarkdownFormatter.format_note_to_file(note_dict, "")
+
+        assert "Dict comment for file" in markdown
+        assert "20210101" in filename
+        assert "Dict_Reviewer" in filename
+        assert filename.endswith(".md")
+
+    def test_format_all_notes_with_nested_replies(self):
+        """Test formatting notes with nested replies (reply to reply).
+
+        This tests the fix for showing reviewer responses to author rebuttals.
+        Structure: Submission -> Review -> Author Rebuttal -> Reviewer Response
+        """
+        submission = create_mock_note(
+            note_id="submission_1",
+            content={"title": {"value": "Test Paper"}},
+            replyto=None,
+        )
+
+        review = create_mock_note(
+            note_id="review_1",
+            signatures=["Reviewer ABC"],
+            cdate=1609459200000,
+            content={"review": {"value": "This paper needs improvements"}},
+            replyto="submission_1",
+        )
+
+        author_rebuttal = create_mock_note(
+            note_id="rebuttal_1",
+            signatures=["Authors"],
+            cdate=1609545600000,
+            content={"comment": {"value": "Thank you for the review"}},
+            replyto="review_1",
+        )
+
+        reviewer_response = create_mock_note(
+            note_id="response_1",
+            signatures=["Reviewer ABC"],
+            cdate=1609632000000,
+            content={"comment": {"value": "I appreciate the clarification"}},
+            replyto="rebuttal_1",
+        )
+
+        result = MarkdownFormatter.format_all_notes(
+            [submission, review, author_rebuttal, reviewer_response],
+            submission_title="Test Paper",
+        )
+
+        # Check all levels are present
+        assert "This paper needs improvements" in result
+        assert "Thank you for the review" in result
+        assert "I appreciate the clarification" in result
+
+        # Check nesting structure - reviewer response should be nested under rebuttal
+        review_pos = result.find("This paper needs improvements")
+        rebuttal_pos = result.find("Thank you for the review")
+        response_pos = result.find("I appreciate the clarification")
+
+        assert review_pos < rebuttal_pos < response_pos
+
+    def test_build_children_map(self):
+        """Test that _build_children_map correctly builds the reply tree."""
+        submission = create_mock_note(note_id="sub_1", replyto=None)
+        comment1 = create_mock_note(
+            note_id="comment_1", cdate=1609459200000, replyto="sub_1"
+        )
+        comment2 = create_mock_note(
+            note_id="comment_2", cdate=1609545600000, replyto="sub_1"
+        )
+        reply_to_comment1 = create_mock_note(
+            note_id="reply_1", cdate=1609632000000, replyto="comment_1"
+        )
+
+        children_map = MarkdownFormatter._build_children_map(
+            [submission, comment1, comment2, reply_to_comment1]
+        )
+
+        # submission should have 2 children
+        assert len(children_map.get("sub_1", [])) == 2
+        # comment1 should have 1 child
+        assert len(children_map.get("comment_1", [])) == 1
+        # comment2 should have no children
+        assert len(children_map.get("comment_2", [])) == 0
+        # Children should be sorted by date
+        assert children_map["sub_1"][0].id == "comment_1"
+        assert children_map["sub_1"][1].id == "comment_2"
