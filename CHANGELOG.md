@@ -1,5 +1,15 @@
 # CHANGELOG
 
+## v0.2.0 (2026-03-24)
+
+### Feature
+
+* feat: prompt for password on CLI if not provided ([`8ae1331`](https://github.com/chanind/extract-openreview-comments/commit/8ae133195cf232da8cf60e36ea0b5f9a69cb380a))
+
+### Fix
+
+* fix: extract all fields from comments ([`1a051bb`](https://github.com/chanind/extract-openreview-comments/commit/1a051bb5347e91eaea8f312405d7a373f1d2b9eb))
+
 ## v0.1.2 (2025-11-30)
 
 ### Fix
