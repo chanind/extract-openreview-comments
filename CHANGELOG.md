@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## v0.2.1 (2026-03-24)
+
+### Fix
+
+* fix: properly extract nested int fields ([`b53eabf`](https://github.com/chanind/extract-openreview-comments/commit/b53eabf3e0adc9a90bc620131f3408d93788f79d))
+
 ## v0.2.0 (2026-03-24)
 
 ### Feature
