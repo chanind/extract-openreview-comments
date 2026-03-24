@@ -44,6 +44,12 @@ class TestMarkdownFormatter:
         result = MarkdownFormatter._extract_value(field)
         assert result == "42"
 
+    def test_extract_value_dict_with_int(self):
+        """Test extracting value from dict with int value (e.g., {"value": 3})."""
+        field = {"value": 3}
+        result = MarkdownFormatter._extract_value(field)
+        assert result == "3"
+
     def test_extract_value_none(self):
         """Test extracting value from None."""
         result = MarkdownFormatter._extract_value(None)

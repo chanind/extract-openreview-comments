@@ -114,6 +114,10 @@ class MarkdownFormatter:
         elif isinstance(field, (int, float)):
             value = str(field)
 
+        # Ensure extracted value is a string (e.g., {"value": 3} -> "3")
+        if value is not None and not isinstance(value, str):
+            value = str(value)
+
         # Unescape HTML entities (e.g., &#39; -> ', &quot; -> ")
         if value and isinstance(value, str):
             value = html.unescape(value)
