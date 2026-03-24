@@ -355,3 +355,55 @@ class TestMarkdownFormatter:
         # Children should be sorted by date
         assert children_map["sub_1"][0].id == "comment_1"
         assert children_map["sub_1"][1].id == "comment_2"
+
+    def test_format_note_renders_all_content_fields(self):
+        """Test that all content fields are rendered, not just hardcoded ones."""
+        note = create_mock_note(
+            content={
+                "summary": {"value": "A good paper."},
+                "strengths": {"value": "Strong methodology\nNovel approach"},
+                "weaknesses": {"value": "Limited evaluation\nNeeds more baselines"},
+                "questions": {"value": "Can you clarify Section 3?"},
+                "soundness": {"value": "3: Good"},
+                "presentation": {"value": "2: Fair"},
+                "contribution": {"value": "3: Good"},
+                "rating": {"value": "6: Weak Accept"},
+                "confidence": {"value": "4: High"},
+                "custom_venue_field": {"value": "Some venue-specific value"},
+            }
+        )
+
+        result = MarkdownFormatter.format_note(note, include_replies=False)
+
+        assert "Strong methodology" in result
+        assert "Novel approach" in result
+        assert "Limited evaluation" in result
+        assert "Needs more baselines" in result
+        assert "Can you clarify Section 3?" in result
+        assert "Soundness:**" in result
+        assert "Presentation:**" in result
+        assert "Contribution:**" in result
+        assert "Rating:** 6: Weak Accept" in result
+        assert "Confidence:** 4: High" in result
+        # Venue-specific fields should also appear
+        assert "Custom Venue Field:**" in result
+        assert "Some venue-specific value" in result
+
+    def test_format_content_fields_ordering(self):
+        """Test that known fields appear before unknown fields."""
+        note = create_mock_note(
+            content={
+                "zebra_field": {"value": "Z value"},
+                "summary": {"value": "Summary text"},
+                "rating": {"value": "5"},
+            }
+        )
+
+        result = MarkdownFormatter.format_note(note, include_replies=False)
+
+        summary_pos = result.find("Summary")
+        rating_pos = result.find("Rating")
+        zebra_pos = result.find("Zebra Field")
+
+        # Known fields in preferred order before unknown fields
+        assert summary_pos < rating_pos < zebra_pos

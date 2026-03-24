@@ -10,6 +10,29 @@ from openreview.api import Note
 class MarkdownFormatter:
     """Format OpenReview notes as Markdown."""
 
+    # Fields to skip (handled separately or not useful as text)
+    _SKIP_FIELDS = {"title"}
+
+    # Preferred display order for known fields
+    _PREFERRED_FIELD_ORDER = [
+        "comment",
+        "review",
+        "summary",
+        "response",
+        "soundness",
+        "presentation",
+        "contribution",
+        "strengths",
+        "weaknesses",
+        "questions",
+        "limitations",
+        "flag_for_ethics_review",
+        "ethics_review_area",
+        "rating",
+        "confidence",
+        "code_of_conduct",
+    ]
+
     @staticmethod
     def _get_attr(note: Note | dict[str, Any], attr: str, default: Any = None) -> Any:
         """Get attribute from Note object or dict."""
@@ -51,40 +74,9 @@ class MarkdownFormatter:
         # Extract and format content
         content = MarkdownFormatter._get_attr(note, "content")
         if content:
-            # Title (if present and not the main submission)
-            if "title" in content and level > 0:
-                title_value = MarkdownFormatter._extract_value(content["title"])
-                if title_value:
-                    markdown_lines.append(f"{indent}**Title:** {title_value}")
-                    markdown_lines.append("")
-
-            # Main content fields
-            for field_name in ["comment", "review", "summary", "response"]:
-                if field_name in content:
-                    field_value = MarkdownFormatter._extract_value(content[field_name])
-                    if field_value:
-                        markdown_lines.append(f"{indent}**{field_name.title()}:**")
-                        markdown_lines.append("")
-                        # Indent content
-                        for line in field_value.split("\n"):
-                            markdown_lines.append(f"{indent}{line}")
-                        markdown_lines.append("")
-
-            # Other relevant fields
-            for field_name in [
-                "rating",
-                "confidence",
-                "strengths",
-                "weaknesses",
-                "questions",
-            ]:
-                if field_name in content:
-                    field_value = MarkdownFormatter._extract_value(content[field_name])
-                    if field_value:
-                        markdown_lines.append(
-                            f"{indent}**{field_name.replace('_', ' ').title()}:** {field_value}"
-                        )
-                        markdown_lines.append("")
+            markdown_lines.extend(
+                MarkdownFormatter._format_content_fields(content, indent, level)
+            )
 
         # Add replies if present
         details = MarkdownFormatter._get_attr(note, "details")
@@ -127,6 +119,62 @@ class MarkdownFormatter:
             value = html.unescape(value)
 
         return value
+
+    @staticmethod
+    def _format_content_fields(
+        content: dict[str, Any], indent: str, level: int
+    ) -> list[str]:
+        """Format all content fields from a note.
+
+        Dynamically renders all fields in the content dict rather than
+        relying on a hardcoded list, so venue-specific fields are never dropped.
+
+        Args:
+            content: The content dict from the note
+            indent: The indentation prefix string
+            level: Nesting level (0 = top-level)
+
+        Returns:
+            List of markdown lines
+        """
+        markdown_lines: list[str] = []
+
+        # Title (only for nested comments, not main submission)
+        if "title" in content and level > 0:
+            title_value = MarkdownFormatter._extract_value(content["title"])
+            if title_value:
+                markdown_lines.append(f"{indent}**Title:** {title_value}")
+                markdown_lines.append("")
+
+        # Collect and order remaining fields
+        remaining = set(content.keys()) - MarkdownFormatter._SKIP_FIELDS
+        ordered: list[str] = []
+        for field in MarkdownFormatter._PREFERRED_FIELD_ORDER:
+            if field in remaining:
+                ordered.append(field)
+                remaining.discard(field)
+        # Append any unknown fields alphabetically
+        ordered.extend(sorted(remaining))
+
+        for field_name in ordered:
+            field_value = MarkdownFormatter._extract_value(content[field_name])
+            if not field_value:
+                continue
+
+            display_name = field_name.replace("_", " ").title()
+
+            # Use block format for multiline or long values, inline for short ones
+            if "\n" in field_value or len(field_value) > 100:
+                markdown_lines.append(f"{indent}**{display_name}:**")
+                markdown_lines.append("")
+                for line in field_value.split("\n"):
+                    markdown_lines.append(f"{indent}{line}")
+                markdown_lines.append("")
+            else:
+                markdown_lines.append(f"{indent}**{display_name}:** {field_value}")
+                markdown_lines.append("")
+
+        return markdown_lines
 
     @staticmethod
     def _build_children_map(notes: list[Note]) -> dict[str, list[Note]]:
@@ -189,40 +237,9 @@ class MarkdownFormatter:
         # Extract and format content
         content = MarkdownFormatter._get_attr(note, "content")
         if content:
-            # Title (if present and not the main submission)
-            if "title" in content and level > 0:
-                title_value = MarkdownFormatter._extract_value(content["title"])
-                if title_value:
-                    markdown_lines.append(f"{indent}**Title:** {title_value}")
-                    markdown_lines.append("")
-
-            # Main content fields
-            for field_name in ["comment", "review", "summary", "response"]:
-                if field_name in content:
-                    field_value = MarkdownFormatter._extract_value(content[field_name])
-                    if field_value:
-                        markdown_lines.append(f"{indent}**{field_name.title()}:**")
-                        markdown_lines.append("")
-                        # Indent content
-                        for line in field_value.split("\n"):
-                            markdown_lines.append(f"{indent}{line}")
-                        markdown_lines.append("")
-
-            # Other relevant fields
-            for field_name in [
-                "rating",
-                "confidence",
-                "strengths",
-                "weaknesses",
-                "questions",
-            ]:
-                if field_name in content:
-                    field_value = MarkdownFormatter._extract_value(content[field_name])
-                    if field_value:
-                        markdown_lines.append(
-                            f"{indent}**{field_name.replace('_', ' ').title()}:** {field_value}"
-                        )
-                        markdown_lines.append("")
+            markdown_lines.extend(
+                MarkdownFormatter._format_content_fields(content, indent, level)
+            )
 
         # Get replies from children_map (built from replyto field, not API directReplies)
         note_id = MarkdownFormatter._get_attr(note, "id")

@@ -27,7 +27,9 @@ class TestCliPasswordPrompt:
 
         assert result.exit_code == 0
         mock_client_class.assert_called_once_with(
-            username="myuser", password="secret_password", baseurl="https://api2.openreview.net"
+            username="myuser",
+            password="secret_password",
+            baseurl="https://api2.openreview.net",
         )
 
     @patch("extract_openreview_comments.cli.OpenReviewClient")
