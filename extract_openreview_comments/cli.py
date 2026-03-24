@@ -80,6 +80,10 @@ def main(
     extract-openreview-comments <forum_id> -o my_comments.md
     """
     try:
+        # Prompt for password if username is provided without one
+        if username and not password:
+            password = click.prompt("OpenReview password", hide_input=True)
+
         click.echo(f"Fetching comments from forum: {forum_id}")
 
         # Initialize client
